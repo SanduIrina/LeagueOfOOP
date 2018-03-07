@@ -1,0 +1,202 @@
+===============================================================================
+| |								World of POO                                | |
+| |							  Sandu Maria Irina                             | |
+| |								   323 CD                                   | |
+===============================================================================
+
+Descrierea claselor:
+
+Clasa Adam este o clasa abstracta folosita ca baza pentru extinderea tuturor
+tipurilor de eroi. In aceasta clasa am definit toate functiile folosite in 
+continuare de catre eroi si le-am implementat doar pe cele care nu tin cont de
+tipul eroului. Ca membri, am declarat toate "stats"-urile descrise in 
+specificatiile pentru fiecare erou(hp,xp,coordonate, etc).
+
+In constructorul clasei setez tipul eroului si coordonatele sale la un moment 
+de timp.
+
+Metoda checkWin: verifica daca eroul a supravietuit luptei si in caz afirmativ 
+acesta va primi xp.
+
+Metoda checkXp: verifica daca xp-ul eroului depaseste un anumit threshold si 
+in caz afirmativ in creste nivelul pana cand xp-ul ajunge sub threshold.
+
+Metoda move: primeste ca parametru un char care desemneaza directia de miscare 
+si in functie de aceasta scade/creste cu 1 abscisa/ordonata eroului.
+
+Metoda checkAlive: verifica daca eroul mai este in viata si ii aduce hp-ul la 
+0 in cazul in care acesta este negativ.
+
+Metoda checkMedium: va verifica la fiecare erou in parte tipul de "land" pe 
+care se afla si ii va aplica bonus de damage daca este cazul.
+
+Double Dispatch
+
+Am aplicat double dispatch pentru identificarea tipului de adversar si 
+aplicarea modificatorilor de rasa corespunzatori. In clasa Adam am implementat 
+o metoda beChecked care primeste ca parametru inamicul sub tipul eroului 
+universal si apeleaza functia checkOpponent(Adam inamic). Prin aceasta 
+constructie eroul primit nu este verificat per-se ci se apeleaza functia 
+checkOpponent care este implementata in toate subclasele lui Adam, facandu-se 
+astfel downcast. Rasa personajului nu se testeaza deloc.
+
+In continuare sunt declarate si implementate settere si gettere pentru toate 
+variabilele ce trebuie accesate din afara clasei.
+_______________________________________________________________________________
+
+Urmatoarele 4 clase extind clasa Adam
+
+Clasa Pyromancer
+
+In constructorul clasei setez membrii hp, xp, si pe cei de damage la valorile 
+specifice acestui tip de erou.
+
+Metoda abillity1: scad din viata oponentului valoarea damage-ului primei 
+abilitati.
+
+Metoda abillity2: scad din viata oponentului valoarea damage-ului celei de-a 
+doua abilitati, setez variabila acesteia de damage over time la DoT-ul dat de 
+Pyromancer si numarul de runde pentru care este activ acest damage la 2. De 
+asemenea setez flag-ul de root al victimei la 0 dearece o abilitate over time 
+o suprascrie pe una anterioara.
+
+Metoda levelUp: cresc nivelul curent al eroului cu 1, cresc hp-ul si toate 
+tipurile de damage cu buff-ul de damage specificat.
+
+Metoda checkMedium: In cazul in care eroul se afla pe teren de tip "Volcanic", 
+cresc damage-ul abilitatilor sale cu 25%. De asemenea setez variabilele fWiz 
+si sWiz la damage-ul dupa aplicarea modificatorului de teren al abilitatilor( 
+fWiz si sWiz vor fi folosite in continuare de eroul de tip Wizard).
+
+Metoda beChecked: folosita pentru Double Dispatch, primeste ca parametru 
+oponentul si trimite tipul eroului curent ca parametru in functia de 
+checkOpponent a inamicului pentru ca acela sa ii poata aplica modificatorii de 
+rasa.
+
+Metoda checkOpponent: este overloaded fiind implementata pentru fiecare tip de 
+erou cu specificatii de crestere/scadere a damage-ului diferite.
+
+Metoda restoreDmg: este folosita pentru a reseta damage-ul dupa aplicarea 
+modificatorilor de teren si rasa.
+_______________________________________________________________________________
+
+In continuare voi descrie aspectele claselor care difera de ceea ce am 
+prezentat pana acum.
+
+Clasa Knight
+
+Metoda abillity1: Se calculeaza un threshold in functie de nivelul curent al 
+eroului si de viata potential maxima a inamicului, iar daca viata curenta a 
+inamicului este sub acest threshold atunci aceasta va fi adusa la 0, altfel se 
+va da damage-ul setat al primei abilitati.
+
+Metoda abillity2: Scade viata inamicului cu damage-ul specific si ii aplica 
+acestuia un "root" de o tura. De asemenea supracrie flagurile de DoT cu 0.
+
+Metoda checkMedium: In cazul in care eroul se afla pe teren de tip "Land",
+abilitatile sale vor primii un bonus damage de 15%, iar membri fWiz si sWiz vor
+lua fie valoarea abilitatilor dupa ce au primit buff-ul de teren, fie valoarea 
+lor fara buff.
+_______________________________________________________________________________
+
+Clasa Rogue
+
+Metoda abillity1: scade hp-ul victimei cu valoarea de damage a primei abilitati
+(fSkill).
+
+Metoda abillity2: scade hp-ul victimei cu valoarea de damage a celei de-a doua 
+abilitati si seteaza flag-urile de root si DoT.
+
+Metoda checkMedium: In cazul in care eroul se afla pe un teren de tip "Woods", 
+damage-ul dat de abilitatile sale creste cu 15% iar someFlag(care va fi 
+atribuit numarului de runde de root si de DoT) devine 6. De asemenea daca 
+numarul de ori de care a fost folosita aceasta abilitate este divizibil cu 3, 
+prima abilitate va primi un buff de 50%. In caz contrat someflag se seteaza la 
+3. fWiz si sWiz se modifica dupa aceeasi regula ca mai sus. La final se 
+incrementeaza membrul countCrit pentru a tine cont de divizibilitatea cu 3.
+
+_______________________________________________________________________________
+
+Clasa Wizard
+
+Metoda abillity1: Damage-ul dat de prima abilitate se seteaza la minimul 
+dintre 0.3*viata potential maxima a inamicului si viata actuala a inamicului, 
+inmultit cu un anumit procent calculat in functie de tipul de mediu, rasa 
+inamicului si nivelul eroului curent. Se scade din viata inamicului acest 
+produs.
+
+Metoda abillity2: A doua abilitate depinde de damage-ul total, fara race 
+modifiers, dat de inamic in runda curenta. Astfel, pentru toate celelalte 
+tipuri de eroi, dupa ce am aplicat land modifier am setat variabilele fWiz si 
+sWiz pentru a le folosi in formula de calcul a damage-ului pentru aceasta 
+abilitate.
+
+Metoda checkMedium: In cazul in care eroul se afla pe teren de tip "Desert", 
+procentele folosite in calculul abilitatilor cresc cu 0.1%. Deoarece doi eroi 
+de tip Wizard nu isi aplica recursiv aceasta abilitate, am setat sWiz si fWiz 
+la 0.
+_______________________________________________________________________________
+
+Clasa MapCell
+
+Aceasta clasa este folosita in reprezentarea hartii de joc si a aplicarii 
+modificatorului de teren. Are ca membrii abscisa, ordonata si tipul de teren 
+care ii corespunde. 
+_______________________________________________________________________________
+
+Clasa Constants
+
+In aceasta clasa sunt definite constantele folosite in cadrul claselor( 
+modificatori de teren si rasa, praguri de xp, valori initiale ale damage-ului 
+dat de abilitati si ale hp-ului, valoarea cu care cresc acestea la level up, 
+valori initiale ale procentelor din clasa Wizard)
+_______________________________________________________________________________
+
+Clasa Main
+
+Pentru citirea/scrierea din/in fisier am folosit API-ul pus la dispozitie in 
+arhiva temei. 
+
+Descrierea membrilor:
+
+n - numarul de linii ale hartii;
+m - numarul de coloane ale hartii;
+i,j,k - contoare;
+p - numarul de eroi;
+roundNr - numarul de runde;
+MapCell[][] grid - o matrice de cell-uri care reprezinta harta de joc;
+Adam[] champs - un vector de tip Adam in care retin toti eroii;
+String race - o variabila de tip String in care retin rasa unui erou;
+String directions - retine o linie intreaga de miscari(corespunzatoare unei 
+runde)
+char motion - ia pe rand fiecare caracter din directions si il foloseste in 
+apelul functiei move pentru fiecare erou. 
+
+Pasii algoritmului:
+-Citesc dimensiunile hartii de joc si creez o matrice de cell-uri cu aceste 
+dimensiuni, apoi pentru fiecare celula in parte citesc si ii atribui tipul de 
+teren care ii corespunde.
+-Citesc numarul de eroi si pentru fiecare in parte verific si setez rasa 
+careia ii apartine si coordonatele pe harta.
+-Citesc numarul de runde si deschid un ciclu in care:
+	- citesc directia de miscare pentru fiecare erou si il mut pe noua pozitie 
+	verificand inainte daca are flag-ul de root activ sau nu;
+	-verific daca eroul mai are de luat DoT. Daca da, ii scad DoT-ul din hp-ul 
+	curent si ii decrementez numarul de runde pentru care mai trebuie sa ia DoT
+	.
+Apoi deschid alt ciclu in care:
+	-iau eroii pe rand si verific daca sunt in viata. Daca da, iau toti 
+	ceilalti eroi si verific daca se afla pe aceeasi pozitie cu eroul curent 
+	si daca sunt in viata. Daca toate aceste conditii sunt indeplinite va 
+	incepe lupta dintre cei 2.
+	-Se aplica modificatorii de mediu.
+	-Se aplica modificatorii de rasa cu Double Dispatch.
+	-Se folosesc abilitatile.
+	-Se verifica pentru ambii eroi daca au supravietui. Daca da, si daca 
+	inamicul are hp <= 0, eroul invingator va primi xp.
+	-Se verifica daca xp-ul primit este suficient incat sa se faca level up. 
+	Daca da, se face level up pana cand xp-ul este mai mic decat un threshold.
+	-Se readuc valorile damage-ului abilitatilor la cele de dinainte de 
+	aplicarea modificatorilor.
+In final mai parcurg odata vectorul de eroi iar daca au hp-ul>0 le afisez 
+caracteristicile, iar daca nu, le afisez rasa si "dead".
